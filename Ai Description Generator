@@ -1,0 +1,27 @@
+# ai_backend/main.py
+from fastapi import FastAPI, Request
+from pydantic import BaseModel
+import openai
+import os
+
+app = FastAPI()
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+class ListingRequest(BaseModel):
+    title: str
+    category: str
+    language: str = "en"
+
+@app.post("/generate-description")
+async def generate_description(req: ListingRequest):
+    prompt = f"Generate a short, SEO-friendly business listing description in {req.language} for category {req.category}. Title: {req.title}"
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    return {"description": response['choices'][0]['message']['content']}
